@@ -5,17 +5,19 @@
  */
 package logic;
 
-import dao.GenericDAO;
 import dao.MovieDAOImpl;
 import java.util.ArrayList;
 import model.Movie;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import org.mockito.MockitoAnnotations;
 
 
 /**
@@ -27,19 +29,23 @@ public class MovieManagerTest {
     public MovieManagerTest() {
     }
     
+    @Mock
     MovieDAOImpl dao;
+    @InjectMocks
     MovieManager subject;
+    
     Movie m;
     
     
     @Before
     public void setUp() {
-        m = new Movie();
+        m = new Movie("Test", "Testing Actor", 100);
         subject = new MovieManager();
-        dao = mock(MovieDAOImpl.class);
-        subject.setDao(dao);
+//        dao = mock(MovieDAOImpl.class);
+//        subject.setDao(dao);
+        MockitoAnnotations.initMocks(this);
         Mockito.when(dao.getAllThings()).thenReturn(new ArrayList<Movie>());
-        Mockito.when(dao.getOneThing(1L)).thenReturn(new Movie());
+        Mockito.when(dao.getOneThing(1L)).thenReturn(m);
     }
     
 
@@ -52,18 +58,21 @@ public class MovieManagerTest {
     @Test
     public void testGetMovie() {
         m = subject.getMovie(1L);
-        assertEquals(m, new Movie());
-        verify(dao, times(1)).getOneThing(1L);
-    }
+        assertEquals(m, dao.getOneThing(1L));
+        verify(dao, times(2)).getOneThing(1L);
+    }   
 
     @Test
     public void testGetAllMovies() {
         assertEquals(subject.getAllMovies(), new ArrayList<Movie>());
+        verify(dao, times(1)).getAllThings();
     }
 
     @Test
     public void testEditMovie() {
+        m.setName("Name changed");
         subject.editMovie(m);
+        assertNotEquals(subject.getMovie(1L).getName(), "Not the same name");
         verify(dao, times(1)).editThing(m);
     }
 
